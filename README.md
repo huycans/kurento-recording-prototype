@@ -9,7 +9,7 @@ Running this tutorial
 
 What is kurento-recording-prototype
 ---------------
-Please read Kurento protoype description.docx for more information
+Please read ABSTRACT.docx for more information
 
 Documentation
 -------------

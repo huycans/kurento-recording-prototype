@@ -1,5 +1,0 @@
-Description of the project
-The purpose of this project is to create a prototype for a web based module. It is used to record multiple audio/video streams using Kurento Media Server (KMS).
-The project is realized like a tutorial and the structure of this project is similar to a Kurento tutorial.
-The code includes Javascript code for client browser and Java code for application server logic that interact between client and KMS.
-Audio/video streams mixing and recording should be preformed on KMS.
