@@ -9,7 +9,7 @@ Running this tutorial
 
 What is kurento-recording-prototype
 ---------------
-Please read ABSTRACT.docx for more information
+The purpose of this project is to create a prototype implements kurento media server to record multiple audio/video streams. 
 
 Documentation
 -------------
@@ -17,7 +17,7 @@ Documentation
 
 Source
 ------
-
+This project is based on this repository: https://github.com/Kurento/doc-kurento-readthedocs/blob/4e76bb60f10d8b979801d934ff58917050ab72b0/source/tutorials/java/tutorial-helloworld.rst
 
 News and Website
 ----------------
