@@ -17,7 +17,7 @@ Documentation
 
 Source
 ------
-This project is based on this repository: https://github.com/Kurento/doc-kurento-readthedocs/blob/4e76bb60f10d8b979801d934ff58917050ab72b0/source/tutorials/java/tutorial-helloworld.rst
+This project is based on this repository: https://github.com/Kurento/kurento-tutorial-java/tree/master/kurento-hello-world
 
 News and Website
 ----------------
