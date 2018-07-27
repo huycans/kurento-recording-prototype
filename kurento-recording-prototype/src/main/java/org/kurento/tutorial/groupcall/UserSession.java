@@ -19,16 +19,24 @@ package org.kurento.tutorial.groupcall;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.text.SimpleDateFormat;  
 
 import org.kurento.client.Continuation;
 import org.kurento.client.EventListener;
 import org.kurento.client.IceCandidate;
 import org.kurento.client.IceCandidateFoundEvent;
+import org.kurento.client.MediaFlowOutStateChangeEvent;
 import org.kurento.client.MediaPipeline;
 import org.kurento.client.WebRtcEndpoint;
 import org.kurento.jsonrpc.JsonUtils;
+import org.kurento.client.MediaFlowState;
+import org.kurento.client.RecorderEndpoint;
+import org.kurento.client.StoppedEvent;
+import org.kurento.client.MediaProfileSpecType;
+import org.kurento.client.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.TextMessage;
@@ -52,15 +60,22 @@ public class UserSession implements Closeable {
 
   private final String roomName;
   private final WebRtcEndpoint outgoingMedia;
+  private RecorderEndpoint recorderEndpoint;
   private final ConcurrentMap<String, WebRtcEndpoint> incomingMedia = new ConcurrentHashMap<>();
 
-  public UserSession(final String name, String roomName, final WebSocketSession session,
-      MediaPipeline pipeline) {
+  public UserSession(final String name, final String roomName, final WebSocketSession session,
+      final MediaPipeline pipeline) {
 
     this.pipeline = pipeline;
     this.name = name;
     this.session = session;
     this.roomName = roomName;
+    final Date date = new java.util.Date();
+    final SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");  
+    this.recorderEndpoint =  new RecorderEndpoint
+    .Builder(pipeline,"file:///tmp/" + formatter.format(date) + "/" + roomName + "-" + name + "-" + date.toString() + ".webm")
+    .withMediaProfile(MediaProfileSpecType.WEBM)
+    .build();
     this.outgoingMedia = new WebRtcEndpoint.Builder(pipeline).build();
 
     this.outgoingMedia.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
@@ -79,7 +94,22 @@ public class UserSession implements Closeable {
           log.debug(e.getMessage());
         }
       }
+      
     });
+    //setup listener for recording
+    this.outgoingMedia.addMediaFlowOutStateChangeListener(new EventListener<MediaFlowOutStateChangeEvent>() {
+      @Override
+      public void onEvent(MediaFlowOutStateChangeEvent event) {
+          if (event.getState() == MediaFlowState.FLOWING){
+              // webRtcEndPoints.add(outgoingMedia);
+              
+              outgoingMedia.connect(recorderEndpoint, MediaType.AUDIO);
+              outgoingMedia.connect(recorderEndpoint, MediaType.VIDEO);
+              recorderEndpoint.setMaxOutputBitrate(4000);
+              recorderEndpoint.record();
+          }
+        }
+      });
   }
 
   public WebRtcEndpoint getOutgoingWebRtcPeer() {
@@ -208,7 +238,10 @@ public class UserSession implements Closeable {
         }
       });
     }
-
+    //stop the recording
+    if (this.recorderEndpoint != null) {
+      // recorderEndpoint.stopAndWait();
+    }
     outgoingMedia.release(new Continuation<Void>() {
 
       @Override
