@@ -24,11 +24,23 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.Date;
 
 import javax.annotation.PreDestroy;
 
 import org.kurento.client.Continuation;
+import org.kurento.client.ErrorEvent;
+import org.kurento.client.EventListener;
 import org.kurento.client.MediaPipeline;
+import org.kurento.client.Composite;
+import org.kurento.client.HubPort;
+import org.kurento.client.MediaType;
+import org.kurento.client.RecorderEndpoint;
+import org.kurento.client.MediaFlowOutStateChangeEvent;
+import org.kurento.client.MediaFlowState;
+import org.kurento.client.MediaProfileSpecType;
+import org.kurento.client.MediaType;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.WebSocketSession;
@@ -48,7 +60,9 @@ public class Room implements Closeable {
   private final ConcurrentMap<String, UserSession> participants = new ConcurrentHashMap<>();
   private final MediaPipeline pipeline;
   private final String name;
-
+  private final Composite composite;
+  private final RecorderEndpoint recorderEndpoint;
+  private Boolean isRecording = false;
   public String getName() {
     return name;
   }
@@ -56,6 +70,28 @@ public class Room implements Closeable {
   public Room(String roomName, MediaPipeline pipeline) {
     this.name = roomName;
     this.pipeline = pipeline;
+    this.composite = new Composite.Builder(pipeline).build();
+
+    //setup date formatter
+    final Date date = new java.util.Date();
+
+    //initialize recorder endpoint for recording
+    this.recorderEndpoint =  new RecorderEndpoint
+    .Builder(pipeline,"file:///tmp/" + roomName + "-" + date.toString() + ".webm")
+    .withMediaProfile(MediaProfileSpecType.WEBM)
+    .build();
+    this.recorderEndpoint.setMaxOutputBitrate(4000);
+
+    this.composite.addErrorListener(new EventListener<ErrorEvent>(){
+    
+      @Override
+      public void onEvent(ErrorEvent event) {
+        log.warn("Error with composite element", event);
+      }
+    });
+
+    //start the recording
+    // this.recorderEndpoint.record();
     log.info("ROOM {} has been created", roomName);
   }
 
@@ -63,13 +99,20 @@ public class Room implements Closeable {
   private void shutdown() {
     this.close();
   }
-
+  
   public UserSession join(String userName, WebSocketSession session) throws IOException {
     log.info("ROOM {}: adding participant {}", userName, userName);
-    final UserSession participant = new UserSession(userName, this.name, session, this.pipeline);
+    HubPort hubport = new HubPort.Builder(composite).build();
+
+    final UserSession participant = new UserSession(userName, this.name, session, this.pipeline, hubport, this);
     joinRoom(participant);
     participants.put(participant.getName(), participant);
     sendParticipantNames(participant);
+    
+    //if there is at least one person connect to this room
+    // if (participants.size() == 1){
+    //   this.recorderEndpoint.record();
+    // }
     return participant;
   }
 
@@ -147,17 +190,39 @@ public class Room implements Closeable {
     return participants.values();
   }
 
+  public Composite getComposite(){
+    return this.composite;
+  }
+
+  public RecorderEndpoint getRecorder(){
+    return this.recorderEndpoint;
+  }
+
   public UserSession getParticipant(String name) {
     return participants.get(name);
   }
 
+  public void startRecording(){
+    if (isRecording == false){
+      this.recorderEndpoint.record();
+      this.isRecording = true;
+    }
+  }
   @Override
   public void close() {
+    if (recorderEndpoint != null){
+      recorderEndpoint.stopAndWait();
+    }
+
+    if (composite != null){
+      composite.release();
+    }
+
     for (final UserSession user : participants.values()) {
       try {
         user.close();
       } catch (IOException e) {
-        log.debug("ROOM {}: Could not invoke close on participant {}", this.name, user.getName(),
+        log.debug("ROOM {}: Could not invoke close on participant {}", name, user.getName(),
             e);
       }
     }
@@ -177,7 +242,21 @@ public class Room implements Closeable {
       }
     });
 
-    log.debug("Room {} closed", this.name);
+    composite.release(new Continuation<Void>() {
+
+      @Override
+      public void onSuccess(Void result) throws Exception {
+        log.trace("ROOM {}: Released composite", Room.this.name);
+      }
+
+      @Override
+      public void onError(Throwable cause) throws Exception {
+        log.warn("PARTICIPANT {}: Could not release composite", Room.this.name);
+      }
+    });
+
+    log.debug("Room {} closed", name);
+    
   }
 
 }
