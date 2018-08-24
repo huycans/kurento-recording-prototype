@@ -95,12 +95,12 @@ function onExistingParticipants(msg) {
 		audio : true,
 		video : {
 			mandatory : {
-				minWidth: 320,
-				minHeight: 240,
-				maxWidth : 1024,
-				maxHeight: 768,
-				maxFrameRate : 60,
-				minFrameRate : 15
+				minWidth: 640,
+				minHeight: 320,
+				maxWidth : 1280,
+				maxHeight: 720,
+				maxFrameRate : 17,
+				minFrameRate : 2
 			}
 		}
 	};

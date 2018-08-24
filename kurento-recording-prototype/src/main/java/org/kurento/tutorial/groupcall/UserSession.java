@@ -74,7 +74,6 @@ public class UserSession implements Closeable {
     this.roomName = roomName;
     this.hubport = hubport;
     this.outgoingMedia = new WebRtcEndpoint.Builder(pipeline).build();
-
     this.outgoingMedia.addIceCandidateFoundListener(new EventListener<IceCandidateFoundEvent>() {
 
       @Override
@@ -99,13 +98,6 @@ public class UserSession implements Closeable {
       @Override
       public void onEvent(MediaFlowOutStateChangeEvent event) {
           if (event.getState() == MediaFlowState.FLOWING){
-              // webRtcEndPoints.add(outgoingMedia);
-              
-              // outgoingMedia.connect(recorderEndpoint, MediaType.AUDIO);
-              // outgoingMedia.connect(recorderEndpoint, MediaType.VIDEO);
-              // recorderEndpoint.setMaxOutputBitrate(4000);
-              // recorderEndpoint.record();
-
               //sending user outgoing stream to composite's hubport
               outgoingMedia.connect(hubport, MediaType.AUDIO);
               outgoingMedia.connect(hubport, MediaType.VIDEO);

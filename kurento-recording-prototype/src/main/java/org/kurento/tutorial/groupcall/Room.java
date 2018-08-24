@@ -80,7 +80,8 @@ public class Room implements Closeable {
     .Builder(pipeline,"file:///tmp/" + roomName + "-" + date.toString() + ".webm")
     .withMediaProfile(MediaProfileSpecType.WEBM)
     .build();
-    this.recorderEndpoint.setMaxOutputBitrate(4000);
+    //bitrate is bps
+    this.recorderEndpoint.setMaxOutputBitrate(100000);
 
     this.composite.addErrorListener(new EventListener<ErrorEvent>(){
     
@@ -90,8 +91,6 @@ public class Room implements Closeable {
       }
     });
 
-    //start the recording
-    // this.recorderEndpoint.record();
     log.info("ROOM {} has been created", roomName);
   }
 
@@ -102,17 +101,14 @@ public class Room implements Closeable {
   
   public UserSession join(String userName, WebSocketSession session) throws IOException {
     log.info("ROOM {}: adding participant {}", userName, userName);
-    HubPort hubport = new HubPort.Builder(composite).build();
 
+    //mark the code
+    HubPort hubport = new HubPort.Builder(composite).build();
     final UserSession participant = new UserSession(userName, this.name, session, this.pipeline, hubport, this);
     joinRoom(participant);
     participants.put(participant.getName(), participant);
     sendParticipantNames(participant);
     
-    //if there is at least one person connect to this room
-    // if (participants.size() == 1){
-    //   this.recorderEndpoint.record();
-    // }
     return participant;
   }
 
