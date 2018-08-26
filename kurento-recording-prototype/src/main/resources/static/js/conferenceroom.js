@@ -77,7 +77,7 @@ function receiveVideoResponse(result) {
 	participants[result.name].rtcPeer.processAnswer (result.sdpAnswer, function (error) {
 		if (error) return console.error (error);
 	});
-}
+} 
 
 function callResponse(message) {
 	if (message.response != 'accepted') {
@@ -95,11 +95,11 @@ function onExistingParticipants(msg) {
 		audio : true,
 		video : {
 			mandatory : {
-				minWidth: 640,
-				minHeight: 320,
+				minWidth: 160,
+				minHeight: 120,
 				maxWidth : 1280,
 				maxHeight: 720,
-				maxFrameRate : 17,
+				maxFrameRate : 30,
 				minFrameRate : 2
 			}
 		}
