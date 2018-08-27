@@ -74,11 +74,11 @@ public class Room implements Closeable {
 
     //setup date formatter
     final Date date = new java.util.Date();
-
+    final MediaProfileSpecType fileEnding = MediaProfileSpecType.WEBM;
     //initialize recorder endpoint for recording
     this.recorderEndpoint =  new RecorderEndpoint
-    .Builder(pipeline,"file:///tmp/" + roomName + "-" + date.toString() + ".webm")
-    .withMediaProfile(MediaProfileSpecType.WEBM)
+    .Builder(pipeline,"file:///tmp/" + "room " + roomName + "-" + date.toString() + "." + fileEnding.toString())
+    .withMediaProfile(fileEnding)
     .build();
     //bitrate is bps
     this.recorderEndpoint.setMaxOutputBitrate(100000);
