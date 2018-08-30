@@ -1,18 +1,22 @@
 kurento-recording-prototype
 ===================
 
-Prototype for a kurento media server project
+Prototype for a kurento media server project. Works in Linux environment only.
 
 Running this tutorial
 ---------------------
-This prototpye require Java 8 and maven to run.
-To run this prototype, type the following commands:
+This prototpye require Java 8 and maven to run. You must run Kurento Media Server before starting this prototype, to do it enter 
+```
+sudo service kurento-media-server start
+```
+To run this prototype, enter the following commands:
 ```
 git clone https://github.com/huycans/kurento-recording-prototype.git
 cd kurento-recording-prototype/kurento-recording-prototype
 mvn compile exec:java
 ```
-By default, the recorded file is stored in folder /tmp/
+After the Java server has started, go to https://localhost:8443/ in a WebRTC capable browser to run the app.
+By default, the recorded file is stored in folder /tmp/, you will only see it after the room is closed (when the last user exits the chat room).
 
 
 What is kurento-recording-prototype
